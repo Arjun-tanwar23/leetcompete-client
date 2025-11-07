@@ -3,7 +3,7 @@ import { Suspense, lazy, useEffect, useState } from "react";
 import { ToastContainer } from "react-toastify";
 import PageLoader from "./components/PageLoader";
 import { BattleProvider } from "./context/BattleContext";
-import ProtectedRoute from "./hooks/protectedRoutes";
+import ProtectedRoute from "./hooks/ProtectedRoutes.jsx";
 
 const Home = lazy(() => import("./pages/Home"));
 const Profile = lazy(() => import("./components/profile/Profile"));
@@ -19,15 +19,12 @@ const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const History = lazy(() => import("./pages/History"));
 const WaitingWindow = lazy(() => import("./pages/WaitingWindow.jsx"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const EditProfile = lazy(() => import("./components/profile/editProfile"));
-// Provide a fallback in case the Vite env var isn't loaded (e.g. env file placed in wrong folder)
-export const serverURL = import.meta.env.VITE_SERVER_URL ?? "http://localhost:8080/api";
+const EditProfile = lazy(() => import("./components/profile/EditProfile.jsx"));
+export const serverURL = import.meta.env.VITE_SERVER_URL;
 
 function App() {
   const location = useLocation();
   const [isNavigating, setIsNavigating] = useState(false);
-
-  
 
   useEffect(() => {
     setIsNavigating(true);
