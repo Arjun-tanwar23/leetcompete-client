@@ -36,7 +36,7 @@ function RightPanel({ problem }) {
         localStorage.removeItem(`selectedLanguage_${problem._id}`);
       }
     };
-  }, [problem?._id]);
+  }, []);
 
   useEffect(() => {
     if (!problem?._id) return;
@@ -368,7 +368,6 @@ int main() {
           >
             {isRunning ? (
               <>
-                <PacmanLoader size={8} color="#ffffff" />
                 <span>Running...</span>
               </>
             ) : (
