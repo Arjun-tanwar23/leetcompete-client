@@ -3,7 +3,6 @@ import { FaPaperPlane } from "react-icons/fa";
 import { socket } from "../socket";
 import { useUser } from "../context/UserContext";
 
-
 function ChatBot({ roomId }) {
   const { userData } = useUser();
   // dfdfdfdfd
@@ -62,7 +61,6 @@ function ChatBot({ roomId }) {
     };
 
     socket.emit("send-message", newMessage);
-    setMessages((prev) => [...prev, newMessage]);
     setInput("");
   };
 
