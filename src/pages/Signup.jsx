@@ -29,6 +29,9 @@ function Signup() {
 
   // Google Signup Handler
   const handleGoogleSignup = () => {
+    // Store signup intent in localStorage for callback reference
+    localStorage.setItem('auth0_signup_intent', 'true');
+    
     loginWithRedirect({
       authorizationParams: {
         connection: 'google-oauth2',
@@ -37,7 +40,8 @@ function Signup() {
       },
       appState: {
         returnTo: '/',
-        isSignup: true
+        isSignup: true,
+        flow: 'signup'
       }
     });
   };

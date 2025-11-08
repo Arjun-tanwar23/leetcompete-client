@@ -31,15 +31,19 @@ function Login() {
 
   // Google Login Handler
   const handleGoogleLogin = () => {
+    // Store login intent in localStorage for callback reference
+    localStorage.setItem('auth0_signup_intent', 'false');
+    
     loginWithRedirect({
       authorizationParams: {
         connection: 'google-oauth2',
         screen_hint: 'login',
-        prompt: 'select_account'
+        prompt: 'login'
       },
       appState: {
         returnTo: '/',
-        isLogin: true
+        isLogin: true,
+        flow: 'login'
       }
     });
   };

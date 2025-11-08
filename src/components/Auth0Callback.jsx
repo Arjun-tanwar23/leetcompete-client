@@ -28,8 +28,26 @@ function Auth0Callback() {
         setProcessing(true);
         
         try {
-          // Get Auth0 access token
-          const token = await getAccessTokenSilently();
+          // Get Auth0 access token (optional, can work without it too)
+          let token = null;
+          try {
+            token = await getAccessTokenSilently();
+          } catch (tokenError) {
+            console.log("Could not get access token, proceeding without it");
+          }
+          
+          // Determine if this was a signup or login attempt
+          const signupIntent = localStorage.getItem('auth0_signup_intent');
+          const isSignupFlow = signupIntent === 'true';
+          
+          // Clean up the signup intent
+          localStorage.removeItem('auth0_signup_intent');
+          
+          console.log(`🔄 Auth0 ${isSignupFlow ? 'SIGNUP' : 'LOGIN'} flow detected for:`, {
+            email: user.email,
+            name: user.name,
+            auth0Id: user.sub
+          });
           
           // Send user data to your backend for registration/login
           const response = await axios.post(
@@ -39,11 +57,13 @@ function Auth0Callback() {
               email: user.email,
               name: user.name,
               picture: user.picture,
-              emailVerified: user.email_verified
+              emailVerified: user.email_verified,
+              isSignupFlow: isSignupFlow, // Let backend know if this was signup attempt
+              provider: 'google-oauth2'
             },
             {
               headers: {
-                Authorization: `Bearer ${token}`,
+                ...(token && { Authorization: `Bearer ${token}` }),
                 "Content-Type": "application/json",
               },
               withCredentials: true,
@@ -51,13 +71,15 @@ function Auth0Callback() {
           );
 
           // Set user data in your context (same as regular login/signup)
-          setUserData(response.data.user);
+          setUserData(response.data.user || response.data);
           
-          // Show success message
+          // Show success message based on whether it was signup or login
           if (response.data.isNewUser) {
-            toast.success(`Welcome to LeetCompete, ${response.data.user.name}! Account created successfully.`);
+            toast.success(`Welcome to LeetCompete, ${response.data.user?.name || response.data.name}! Account created successfully.`);
+            console.log("✅ New user registered in database:", response.data.user);
           } else {
-            toast.success(`Welcome back, ${response.data.user.name}!`);
+            toast.success(`Welcome back, ${response.data.user?.name || response.data.name}!`);
+            console.log("✅ Existing user logged in:", response.data.user);
           }
           
           // Navigate to home (same as regular flow)
@@ -67,10 +89,13 @@ function Auth0Callback() {
           console.error("Auth0 callback sync error:", error);
           
           if (error.response?.status === 403) {
-            toast.error("Account not found. Please sign up first.");
+            toast.error("Please complete signup first before logging in.");
             navigate("/signup");
+          } else if (error.response?.status === 409) {
+            toast.error("An account with this email already exists. Please try logging in.");
+            navigate("/login");
           } else {
-            toast.error("Authentication failed. Please try again.");
+            toast.error(`Authentication failed: ${error.response?.data?.message || error.message}`);
             navigate("/login");
           }
         } finally {
