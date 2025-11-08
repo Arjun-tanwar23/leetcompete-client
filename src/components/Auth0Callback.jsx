@@ -15,11 +15,19 @@ function Auth0Callback() {
 
   useEffect(() => {
     const handleAuth0Callback = async () => {
+      console.log("🔄 Auth0Callback - Current state:", { 
+        isLoading, 
+        processing, 
+        isAuthenticated, 
+        hasUser: !!user,
+        error: error?.message 
+      });
+
       if (isLoading || processing) return;
 
       if (error) {
-        console.error("Auth0 callback error:", error);
-        toast.error("Authentication failed. Please try again.");
+        console.error("❌ Auth0 callback error:", error);
+        toast.error(`Authentication failed: ${error.message}`);
         navigate("/login");
         return;
       }
@@ -49,18 +57,23 @@ function Auth0Callback() {
             auth0Id: user.sub
           });
           
+          const requestData = {
+            auth0Id: user.sub,
+            email: user.email,
+            name: user.name,
+            picture: user.picture,
+            emailVerified: user.email_verified,
+            isSignupFlow: isSignupFlow,
+            provider: 'google-oauth2'
+          };
+          
+          console.log("📤 Sending to backend:", requestData);
+          console.log("📍 API URL:", `${serverURL}/auth/auth0-callback`);
+          
           // Send user data to your backend for registration/login
           const response = await axios.post(
             `${serverURL}/auth/auth0-callback`,
-            {
-              auth0Id: user.sub,
-              email: user.email,
-              name: user.name,
-              picture: user.picture,
-              emailVerified: user.email_verified,
-              isSignupFlow: isSignupFlow, // Let backend know if this was signup attempt
-              provider: 'google-oauth2'
-            },
+            requestData,
             {
               headers: {
                 ...(token && { Authorization: `Bearer ${token}` }),
@@ -73,12 +86,13 @@ function Auth0Callback() {
           // Set user data in your context (same as regular login/signup)
           setUserData(response.data.user || response.data);
           
-          // Show success message based on whether it was signup or login
+          // Show single success message
+          const userName = response.data.user?.name || response.data.name;
           if (response.data.isNewUser) {
-            toast.success(`Welcome to LeetCompete, ${response.data.user?.name || response.data.name}! Account created successfully.`);
+            toast.success(`Welcome to LeetCompete, ${userName}!`);
             console.log("✅ New user registered in database:", response.data.user);
           } else {
-            toast.success(`Welcome back, ${response.data.user?.name || response.data.name}!`);
+            toast.success(`Welcome back, ${userName}!`);
             console.log("✅ Existing user logged in:", response.data.user);
           }
           
@@ -86,18 +100,26 @@ function Auth0Callback() {
           navigate("/");
           
         } catch (error) {
-          console.error("Auth0 callback sync error:", error);
+          console.error("❌ Auth0 callback sync error:", error);
+          console.error("📋 Error details:", {
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data,
+            message: error.message,
+            code: error.code
+          });
           
-          if (error.response?.status === 403) {
-            toast.error("Please complete signup first before logging in.");
-            navigate("/signup");
+          // Show only one error message
+          if (error.code === 'ERR_NETWORK' || error.message.includes('ERR_CONNECTION_REFUSED')) {
+            toast.error("Backend server is not running");
+          } else if (error.response?.status === 403) {
+            toast.error("Please signup first");
           } else if (error.response?.status === 409) {
-            toast.error("An account with this email already exists. Please try logging in.");
-            navigate("/login");
+            toast.error("Account exists, please login");
           } else {
-            toast.error(`Authentication failed: ${error.response?.data?.message || error.message}`);
-            navigate("/login");
+            toast.error("Authentication failed");
           }
+          navigate("/login");
         } finally {
           setProcessing(false);
         }
