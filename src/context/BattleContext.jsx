@@ -4,6 +4,9 @@ const BattleContext = createContext();
 
 export const useBattle = () => {
   const context = useContext(BattleContext);
+  useEffect(()=>{
+    console.log('useBattle context:', context);
+  },[])
   if (!context) {
     throw new Error('useBattle must be used within BattleProvider');
   }
@@ -67,6 +70,7 @@ export const BattleProvider = ({ children }) => {
   useEffect(() => {
     if (isResetting.current) return;
     try {
+      console.log('Saving battle data to localStorage:', battleData);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(battleData));
     } catch (error) {
       console.error('Error saving battle data to localStorage:', error);

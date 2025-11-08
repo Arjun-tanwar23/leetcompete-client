@@ -4,6 +4,8 @@ import { FaCheck, FaTimes } from "react-icons/fa";
 import { useBattle } from "../../context/BattleContext";
 
 function ProblemNavbar({ problems, currentIndex, onProblemSelect, metadata }) {
+
+    console.log('Rendering ProblemNavbar with problems:', problems, 'currentIndex:', currentIndex, 'metadata:', metadata);
     const navigate = useNavigate();
     const { resetBattle } = useBattle();
     const [showEndBattleModal, setShowEndBattleModal] = useState(false);
@@ -82,7 +84,7 @@ function ProblemNavbar({ problems, currentIndex, onProblemSelect, metadata }) {
                     ))}
                 </div>                    {/* Right: Timer/Info */}
                     <div className="flex items-center gap-4">
-                        {metadata && (
+                        {metadata && (  
                             <div className="flex items-center gap-3 text-sm">
                                 <div className="flex items-center gap-1">
                                     <span className="text-zinc-400">Time:</span>
