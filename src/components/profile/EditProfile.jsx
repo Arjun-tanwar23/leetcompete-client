@@ -81,7 +81,7 @@ function EditProfile() {
       if (photoFile) {
         const photoFormData = new FormData();
         photoFormData.append("photo", photoFile);
-
+        
         await axios.post(
           `${serverUrl}/user/updatePhotoURL`,
           photoFormData,

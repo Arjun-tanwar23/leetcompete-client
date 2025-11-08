@@ -5,7 +5,6 @@ import { useBattle } from "../../context/BattleContext";
 import { toast } from "react-toastify";
 
 function ProblemNavbar({ problems, currentIndex, onProblemSelect, metadata }) {
-  console.log("Rendering ProblemNavbar with problems:", problems, "currentIndex:", currentIndex, "metadata:", metadata);
   const navigate = useNavigate();
   const { resetBattle, battleData } = useBattle();
   const [showEndBattleModal, setShowEndBattleModal] = useState(false);
