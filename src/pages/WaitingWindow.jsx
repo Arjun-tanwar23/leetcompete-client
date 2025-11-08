@@ -20,15 +20,17 @@ function WaitingWindow() {
   const [showChat, setShowChat] = useState(false);
   const [opponentJoined, setOpponentJoined] = useState(false);
   const [opponentName, setOpponentName] = useState("");
-  
+
   // Normalize room ID (trim and uppercase)
-  const roomId = (location.state?.roomId || battleData.roomId)?.trim().toUpperCase();
+  const roomId = (location.state?.roomId || battleData.roomId)
+    ?.trim()
+    .toUpperCase();
 
   // Initialize battle data from location.state - run once
   useEffect(() => {
     if (location.state?.problems && location.state?.roomId) {
       const normalizedRoomId = location.state.roomId.trim().toUpperCase();
-      
+
       updateBattleData({
         problems: location.state.problems,
         metadata: location.state.metadata,
@@ -47,10 +49,10 @@ function WaitingWindow() {
     console.log(`Joining room: "${roomId}"`);
 
     // Join the room
-    socket.emit("join-room", { 
-      roomId, 
-      userId: userData._id, 
-      name: userData.name 
+    socket.emit("join-room", {
+      roomId,
+      userId: userData._id,
+      name: userData.name,
     });
 
     // Listen for opponent join event
@@ -69,8 +71,8 @@ function WaitingWindow() {
     // Listen for match start
     const handleMatchStarted = () => {
       console.log("Match started by host");
-      toast.success("Battle is starting!");
-      
+      toast.success("Battle is started!");
+
       // Small delay to ensure both players start together
       setTimeout(() => {
         const problems = battleData.problems || location.state?.problems;
@@ -89,7 +91,7 @@ function WaitingWindow() {
       toast.warning("Opponent has left the room");
       setOpponentJoined(false);
       setOpponentName("");
-      
+
       updateBattleData({
         opponentJoined: false,
         opponentName: null,
@@ -102,7 +104,7 @@ function WaitingWindow() {
       toast.error("Opponent disconnected from the room");
       setOpponentJoined(false);
       setOpponentName("");
-      
+
       updateBattleData({
         opponentJoined: false,
         opponentName: null,
@@ -129,7 +131,15 @@ function WaitingWindow() {
       socket.off("opponent-disconnected", handleOpponentDisconnected);
       socket.off("room-cancelled", handleRoomCancelled);
     };
-  }, [roomId, userData, battleData.problems, location.state, navigate, updateBattleData, resetBattle]);
+  }, [
+    roomId,
+    userData,
+    battleData.problems,
+    location.state,
+    navigate,
+    updateBattleData,
+    resetBattle,
+  ]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(roomId).then(() => {
@@ -145,31 +155,35 @@ function WaitingWindow() {
         data: { roomId, player1: userData._id },
         withCredentials: true,
       });
-      
+
       // Notify opponent that room is cancelled
       socket.emit("cancel-room", { roomId });
-      
+
       // Emit leave event
       socket.emit("leave-room", { roomId, userId: userData._id });
-      
+
       toast.success("Room cancelled successfully");
-      
+
       // Reset battle data
       resetBattle();
-      
+
       // Close modal and navigate
       setShowCancelModal(false);
       navigate("/battle");
     } catch (error) {
       console.error("Cancel Room Error:", error);
-      toast.error(error.response?.data?.message || error.response?.data?.error || "Failed to cancel room");
+      toast.error(
+        error.response?.data?.message ||
+          error.response?.data?.error ||
+          "Failed to cancel room"
+      );
     }
   };
 
   const handleLeaveRoom = () => {
     // Emit leave event to notify host
     socket.emit("leave-room", { roomId, userId: userData._id });
-    
+
     toast.info("You left the room");
     resetBattle();
     navigate("/battle");
@@ -205,7 +219,9 @@ function WaitingWindow() {
       <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
         <div className="bg-zinc-900 rounded-2xl p-8 max-w-md w-full border border-zinc-700 shadow-2xl">
           <h3 className="text-2xl font-bold text-white mb-4">Error</h3>
-          <p className="text-zinc-300 mb-6">No room ID found. Please create or join a room.</p>
+          <p className="text-zinc-300 mb-6">
+            No room ID found. Please create or join a room.
+          </p>
           <button
             onClick={() => navigate("/battle")}
             className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium"
@@ -267,7 +283,9 @@ function WaitingWindow() {
                 Host {battleData.isHost ? "(You)" : ""}
               </div>
               <div className="text-zinc-400 text-sm mt-1">
-                {battleData.isHost ? userData.name : (battleData.host?.name || "Host")}
+                {battleData.isHost
+                  ? userData.name
+                  : battleData.host?.name || "Host"}
               </div>
             </div>
 
@@ -286,8 +304,8 @@ function WaitingWindow() {
               <div className="text-zinc-400 text-sm mt-1">
                 {opponentJoined
                   ? `${opponentName} ✅`
-                  : !battleData.isHost 
-                  ? userData.name 
+                  : !battleData.isHost
+                  ? userData.name
                   : "Waiting to join..."}
               </div>
             </div>
@@ -303,7 +321,7 @@ function WaitingWindow() {
               💬
             </button>
 
-            {(battleData.isHost || location.state?.isHost) ? (
+            {battleData.isHost || location.state?.isHost ? (
               <div className="flex items-center gap-3">
                 <button
                   onClick={handleStartBattle}
@@ -338,7 +356,7 @@ function WaitingWindow() {
           </div>
 
           <p className="text-zinc-500 text-sm mt-4 text-center">
-            {battleData.isHost 
+            {battleData.isHost
               ? "Click 'Start Battle' when your opponent joins."
               : "Wait for the host to start the battle."}
           </p>

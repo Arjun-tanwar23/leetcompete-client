@@ -1,17 +1,24 @@
-import { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+} from "react";
 
 const BattleContext = createContext();
 
 export const useBattle = () => {
   const context = useContext(BattleContext);
   if (!context) {
-    throw new Error('useBattle must be used within BattleProvider');
+    throw new Error("useBattle must be used within BattleProvider");
   }
   return context;
 };
 
-const STORAGE_KEY = 'battleData';
-const CODE_STORAGE_KEY = 'userCode';
+const STORAGE_KEY = "battleData";
+const CODE_STORAGE_KEY = "userCode";
 
 const defaultState = {
   roomId: null,
@@ -41,7 +48,7 @@ const getInitialState = () => {
       };
     }
   } catch (error) {
-    console.error('Error loading battle data from localStorage:', error);
+    console.error("Error loading battle data from localStorage:", error);
   }
   return defaultState;
 };
@@ -53,7 +60,7 @@ const getUserCodeFromStorage = () => {
       return JSON.parse(stored);
     }
   } catch (error) {
-    console.error('Error loading user code from localStorage:', error);
+    console.error("Error loading user code from localStorage:", error);
   }
   return {};
 };
@@ -69,7 +76,7 @@ export const BattleProvider = ({ children }) => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(battleData));
     } catch (error) {
-      console.error('Error saving battle data to localStorage:', error);
+      console.error("Error saving battle data to localStorage:", error);
     }
   }, [battleData]);
 
@@ -79,7 +86,7 @@ export const BattleProvider = ({ children }) => {
     try {
       localStorage.setItem(CODE_STORAGE_KEY, JSON.stringify(userCode));
     } catch (error) {
-      console.error('Error saving user code to localStorage:', error);
+      console.error("Error saving user code to localStorage:", error);
     }
   }, [userCode]);
 
@@ -87,7 +94,7 @@ export const BattleProvider = ({ children }) => {
   const updateBattleData = useCallback((data) => {
     setBattleData((prev) => {
       // If data is a function, call it with prev
-      if (typeof data === 'function') {
+      if (typeof data === "function") {
         return { ...prev, ...data(prev) };
       }
       return { ...prev, ...data };
@@ -112,9 +119,12 @@ export const BattleProvider = ({ children }) => {
     }));
   }, []);
 
-  const getUserCode = useCallback((problemId, language) => {
-    return userCode[problemId]?.[language] || '';
-  }, [userCode]);
+  const getUserCode = useCallback(
+    (problemId, language) => {
+      return userCode[problemId]?.[language] || "";
+    },
+    [userCode]
+  );
 
   const resetBattle = useCallback(() => {
     isResetting.current = true;
@@ -126,7 +136,7 @@ export const BattleProvider = ({ children }) => {
       localStorage.removeItem(STORAGE_KEY);
       localStorage.removeItem(CODE_STORAGE_KEY);
     } catch (error) {
-      console.error('Error clearing localStorage:', error);
+      console.error("Error clearing localStorage:", error);
     }
 
     setTimeout(() => {
@@ -146,8 +156,6 @@ export const BattleProvider = ({ children }) => {
   };
 
   return (
-    <BattleContext.Provider value={value}>
-      {children}
-    </BattleContext.Provider>
+    <BattleContext.Provider value={value}>{children}</BattleContext.Provider>
   );
 };

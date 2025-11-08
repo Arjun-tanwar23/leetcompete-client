@@ -38,7 +38,7 @@ function Signup() {
         },
         {
           headers: { "Content-Type": "application/json" },
-          withCredentials: true
+          withCredentials: true,
         }
       );
       setUserData(res.data);
@@ -55,10 +55,10 @@ function Signup() {
     <div className="bg-zinc-900 w-[100vw] h-[100vh] flex items-center justify-center relative">
       {/* Left vertical line */}
       <div className="hidden md:block fixed left-8 lg:left-16 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-zinc-700 to-transparent z-10"></div>
-      
+
       {/* Right vertical line */}
       <div className="hidden md:block fixed right-8 lg:right-16 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-zinc-700 to-transparent z-10"></div>
-      
+
       <button
         onClick={() => navigate("/")}
         className="absolute top-6 left-6 px-4 py-2 bg-zinc-900 hover:bg-zinc-700 text-white rounded-lg font-medium transition-all border border-zinc-600 flex items-center gap-2"
@@ -131,14 +131,19 @@ items-center justify-center gap-3"
               />
             )}
           </div>
-          
+
           <button
             className="w-[80%] h-[40px] bg-black text-white cursor-pointer flex items-center  justify-center rounded-[5px] mt-5"
-            onClick={handleSubmit} disabled={loading}
+            onClick={handleSubmit}
+            disabled={loading}
           >
-            {loading ? <ClipLoader size={30} color="white"/> : "Start Your journey"}
+            {loading ? (
+              <ClipLoader size={30} color="white" />
+            ) : (
+              "Start Your journey"
+            )}
           </button>
-          
+
           <div
             onClick={() => {
               navigate("/login");
@@ -156,7 +161,11 @@ items-center justify-center gap-3"
           className="w-[50%] h-[100%] rounded-r-2xl bg-[black] md:flex flex-col
 items-center justify-center hidden"
         >
-          <img src={logo} alt="logo" className="w-30 shadow-2xl border-2 border-white"></img>
+          <img
+            src={logo}
+            alt="logo"
+            className="w-30 shadow-2xl border-2 border-white"
+          ></img>
           <ul className="text-white list-disc list-inside space-y-2 mt-10">
             <li>Real-time 1v1 Coding Battles</li>
             <li>2500+ Problems for Gamified Environment</li>

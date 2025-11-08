@@ -3,9 +3,9 @@ import { FaPaperPlane } from "react-icons/fa";
 import { socket } from "../socket";
 import { useUser } from "../context/UserContext";
 
-
 function ChatBot({ roomId }) {
   const { userData } = useUser();
+  // dfdfdfdfd
   const messagesEndRef = useRef(null);
   const [messages, setMessages] = useState(() => {
     // ✅ Load saved messages for this room
@@ -61,7 +61,6 @@ function ChatBot({ roomId }) {
     };
 
     socket.emit("send-message", newMessage);
-    setMessages((prev) => [...prev, newMessage]);
     setInput("");
   };
 

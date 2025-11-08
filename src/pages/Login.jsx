@@ -46,9 +46,9 @@ function Login() {
   return (
     <div className="bg-zinc-900 w-[100vw] h-[100vh] flex items-center justify-center relative">
       <div className="hidden md:block fixed left-8 lg:left-16 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-zinc-700 to-transparent z-10"></div>
-      
+
       <div className="hidden md:block fixed right-8 lg:right-16 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-zinc-700 to-transparent z-10"></div>
-      
+
       <button
         onClick={() => navigate("/")}
         className="absolute top-6 left-6 px-4 py-2 bg-zinc-900 hover:bg-zinc-700 text-white rounded-lg font-medium transition-all border border-zinc-600 flex items-center gap-2"
@@ -118,8 +118,7 @@ function Login() {
           <span className="text-[13px] cursor-pointer text-[#585757] hover:underline underline-offset-2">
             Forget your Password?
           </span>
-       
-         
+
           <div
             onClick={() => {
               navigate("/signup");

@@ -7,7 +7,6 @@ import Navbar from "../components/Navbar";
 import { useUser } from "../context/UserContext";
 import { toast } from "react-toastify";
 
-
 function SelectProblemPage() {
   const [loading, setLoading] = useState(false);
 
@@ -132,8 +131,10 @@ function SelectProblemPage() {
         toast.info(
           "Not enough problems available with the selected configuration. Please adjust your settings."
         );
-      } else if (res.data.problems && res.data.problems.length === numberOfProblems) {
-
+      } else if (
+        res.data.problems &&
+        res.data.problems.length === numberOfProblems
+      ) {
         const createRoomRes = await axios.post(
           `${serverURL}/rooms/create`,
           {

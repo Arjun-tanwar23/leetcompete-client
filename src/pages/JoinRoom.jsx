@@ -19,7 +19,7 @@ function JoinRoom() {
   const handleJoinRoom = async () => {
     // Trim and normalize room ID
     const normalizedRoomId = roomId.trim().toUpperCase();
-    
+
     if (!normalizedRoomId) {
       toast.error("Please enter a room ID");
       return;
@@ -38,7 +38,7 @@ function JoinRoom() {
     setLoading(true);
     try {
       console.log(`Attempting to join room: "${normalizedRoomId}"`);
-      
+
       const { data } = await axios.post(
         `${serverURL}/rooms/join`,
         {
@@ -73,8 +73,11 @@ function JoinRoom() {
       });
     } catch (error) {
       console.error("Error joining room:", error);
-      const errorMessage = error.response?.data?.error || error.response?.data?.message || "Failed to join room";
-      
+      const errorMessage =
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        "Failed to join room";
+
       if (error.response?.status === 404) {
         toast.error("Room not found or already full");
       } else if (error.response?.status === 400) {
@@ -89,7 +92,7 @@ function JoinRoom() {
 
   const handleInputChange = (e) => {
     // Only allow alphanumeric characters, convert to uppercase
-    const value = e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    const value = e.target.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
     setRoomId(value);
   };
 
@@ -147,10 +150,10 @@ function JoinRoom() {
                 </button>
 
                 <button
-                  onClick={() => navigate("/battle")}
+                  onClick={() => navigate("/")}
                   className="w-full py-3 bg-zinc-800 text-zinc-300 rounded-lg font-medium hover:bg-zinc-700 transition-all border border-zinc-700"
                 >
-                  Back to Battle Menu
+                  Back to Main Menu
                 </button>
               </div>
             </div>
