@@ -21,12 +21,10 @@ function WaitingWindow() {
   const [opponentJoined, setOpponentJoined] = useState(false);
   const [opponentName, setOpponentName] = useState("");
 
-  // Normalize room ID (trim and uppercase)
   const roomId = (location.state?.roomId || battleData.roomId)
     ?.trim()
     .toUpperCase();
 
-  // Initialize battle data from location.state - run once
   useEffect(() => {
     if (location.state?.problems && location.state?.roomId) {
       const normalizedRoomId = location.state.roomId.trim().toUpperCase();
@@ -39,23 +37,19 @@ function WaitingWindow() {
         host: location.state.host || null,
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Run only once on mount
+  }, []);
 
-  // Setup socket listeners
   useEffect(() => {
     if (!roomId || !userData?._id) return;
 
     console.log(`Joining room: "${roomId}"`);
 
-    // Join the room
     socket.emit("join-room", {
       roomId,
       userId: userData._id,
       name: userData.name,
     });
 
-    // Listen for opponent join event
     const handleOpponentJoined = ({ userId, name }) => {
       console.log("Opponent joined:", name || userId);
       toast.success(`${name || "Opponent"} joined the room!`);
@@ -68,14 +62,20 @@ function WaitingWindow() {
       });
     };
 
-    // Listen for match start
-    const handleMatchStarted = () => {
-      console.log("Match started by host");
+    // --- THIS IS CHANGE #1 ---
+    const handleMatchStarted = ({ startTime, metadata }) => {
+      console.log("Match started by host", { startTime, metadata });
       toast.success("Battle is started!");
 
-      // Small delay to ensure both players start together
+      updateBattleData({
+        startTime: startTime, // Use server's authoritative startTime
+        metadata: metadata, // Save the metadata
+      });
+
       setTimeout(() => {
-        const problems = battleData.problems || location.state?.problems;
+        // Use all available sources
+        const problems =
+          battleData.problems || location.state?.problems || metadata?.problems;
         if (problems && problems.length > 0) {
           const firstProblemId = problems[0]._id || problems[0].id;
           navigate(`/problem/${firstProblemId}`);
@@ -84,8 +84,8 @@ function WaitingWindow() {
         }
       }, 500);
     };
+    // --- END OF CHANGE #1 ---
 
-    // Listen for opponent leaving
     const handleOpponentLeft = ({ userId }) => {
       console.log("Opponent left the room:", userId);
       toast.warning("Opponent has left the room");
@@ -98,7 +98,6 @@ function WaitingWindow() {
       });
     };
 
-    // Listen for opponent disconnecting
     const handleOpponentDisconnected = ({ userId }) => {
       console.log("Opponent disconnected:", userId);
       toast.error("Opponent disconnected from the room");
@@ -111,7 +110,6 @@ function WaitingWindow() {
       });
     };
 
-    // Listen for room cancelled by host
     const handleRoomCancelled = () => {
       toast.error("Host has cancelled the room");
       resetBattle();
@@ -156,18 +154,14 @@ function WaitingWindow() {
         withCredentials: true,
       });
 
-      // Notify opponent that room is cancelled
       socket.emit("cancel-room", { roomId });
 
-      // Emit leave event
       socket.emit("leave-room", { roomId, userId: userData._id });
 
       toast.success("Room cancelled successfully");
 
-      // Reset battle data
       resetBattle();
 
-      // Close modal and navigate
       setShowCancelModal(false);
       navigate("/battle");
     } catch (error) {
@@ -181,7 +175,6 @@ function WaitingWindow() {
   };
 
   const handleLeaveRoom = () => {
-    // Emit leave event to notify host
     socket.emit("leave-room", { roomId, userId: userData._id });
 
     toast.info("You left the room");
@@ -189,10 +182,19 @@ function WaitingWindow() {
     navigate("/battle");
   };
 
+  // --- THIS IS CHANGE #2 ---
   const handleStartBattle = () => {
     const problems = battleData.problems || location.state?.problems;
+    const metadata = battleData.metadata || location.state?.metadata; // Get metadata
+
     if (!problems || problems.length === 0) {
       toast.error("No problems available for this battle");
+      return;
+    }
+
+    if (!metadata) {
+      // Add this check
+      toast.error("Battle metadata is missing. Cannot start.");
       return;
     }
 
@@ -203,16 +205,12 @@ function WaitingWindow() {
 
     console.log(`Starting battle in room: "${roomId}"`);
 
-    // Emit start event to ALL participants (including self)
-    socket.emit("start-match", { roomId });
-
-    // Navigate host to first problem immediately
-    toast.success("Battle starting!");
-    setTimeout(() => {
-      const firstProblemId = problems[0]._id || problems[0].id;
-      navigate(`/problem/${firstProblemId}`);
-    }, 500);
+    socket.emit("start-match", {
+      roomId,
+      metadata: metadata, // Send metadata to the server
+    });
   };
+  // --- END OF CHANGE #2 ---
 
   if (!roomId) {
     return (
@@ -270,7 +268,6 @@ function WaitingWindow() {
           </div>
 
           <div className="mt-8 flex flex-col md:flex-row gap-6 justify-center items-center">
-            {/* Host Card */}
             <div className="flex-1 min-w-[180px] bg-zinc-800 border border-blue-500 rounded-xl p-6 flex flex-col items-center shadow-md">
               <div className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center text-white text-3xl font-bold mb-3">
                 <img
@@ -289,7 +286,6 @@ function WaitingWindow() {
               </div>
             </div>
 
-            {/* Opponent Card */}
             <div className="flex-1 min-w-[180px] bg-zinc-800 border border-orange-500 rounded-xl p-6 flex flex-col items-center shadow-md">
               <div className="w-20 h-20 rounded-full bg-orange-500 flex items-center justify-center text-white text-3xl font-bold mb-3">
                 <img
@@ -362,7 +358,6 @@ function WaitingWindow() {
           </p>
         </div>
 
-        {/* Cancel Modal */}
         {showCancelModal && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[60] p-4">
             <div className="bg-zinc-900 rounded-2xl p-6 max-w-md w-full border border-zinc-700 shadow-2xl">
