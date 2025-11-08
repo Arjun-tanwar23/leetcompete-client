@@ -21,7 +21,6 @@ function ProblemScreen() {
     const isDraggingRef = useRef(false);
 
     useEffect(() => {
-        // Try to get problems from context first, then from location state
         const problemsFromContext = battleData.problems;
         const problemsFromState = location.state?.problems;
 

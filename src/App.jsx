@@ -4,6 +4,7 @@ import { ToastContainer } from "react-toastify";
 import PageLoader from "./components/PageLoader";
 import { BattleProvider } from "./context/BattleContext";
 import ProtectedRoute from "./hooks/ProtectedRoutes.jsx";
+import { Auth0Provider } from "@auth0/auth0-react";
 
 const Home = lazy(() => import("./pages/Home"));
 const Profile = lazy(() => import("./components/profile/Profile"));
@@ -20,12 +21,17 @@ const History = lazy(() => import("./pages/History"));
 const WaitingWindow = lazy(() => import("./pages/WaitingWindow.jsx"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const EditProfile = lazy(() => import("./components/profile/EditProfile.jsx"));
-const LeaderBoard = lazy(() => import("./pages/LeaderBoard.jsx"));
+const Auth0Callback = lazy(() => import("./components/Auth0Callback"));
 export const serverURL = import.meta.env.VITE_SERVER_URL;
 
 function App() {
   const location = useLocation();
   const [isNavigating, setIsNavigating] = useState(false);
+
+  // Auth0 Configuration
+  const domain = import.meta.env.VITE_AUTH0_DOMAIN;
+  const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID;
+  const redirectUri = import.meta.env.VITE_AUTH0_REDIRECT_URI;
 
   useEffect(() => {
     setIsNavigating(true);
@@ -38,8 +44,27 @@ function App() {
     return () => clearTimeout(timer);
   }, [location.pathname]);
 
+  if (!domain || !clientId) {
+    return (
+      <div className="min-h-screen bg-zinc-900 flex items-center justify-center">
+        <div className="text-white text-center">
+          <h2 className="text-xl font-bold mb-4">Configuration Error</h2>
+          <p>Auth0 configuration is missing. Please check your .env file.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <BattleProvider>
+    <Auth0Provider
+      domain={domain}
+      clientId={clientId}
+      authorizationParams={{
+        redirect_uri: redirectUri || `${window.location.origin}/callback`,
+        scope: "openid profile email"
+      }}
+    >
+      <BattleProvider>
       {isNavigating && <PageLoader />}
       <ToastContainer pauseOnHover={false} theme="dark" />
       <Suspense fallback={<PageLoader />}>
@@ -47,6 +72,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/callback" element={<Auth0Callback />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-of-service" element={<TermsOfService />} />
           {/* protected routes */}
@@ -117,6 +143,7 @@ function App() {
         </Routes>
       </Suspense>
     </BattleProvider>
+    </Auth0Provider>
   );
 }
 
