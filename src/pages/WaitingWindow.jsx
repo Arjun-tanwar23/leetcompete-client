@@ -217,13 +217,13 @@ function WaitingWindow() {
     }
 
     console.log(`Starting battle in room: "${roomId}"`);
-    socket.emit("start-match", { roomId });
+    // Include metadata so the server can validate and broadcast the start event
+    const metadata = battleData.metadata || location.state?.metadata || {};
+    socket.emit("start-match", { roomId, metadata });
 
+    // Let the server emit 'match-started' which the client listens for and
+    // navigates when received. We still show a toast here for immediate feedback.
     toast.success("Battle starting!");
-    setTimeout(() => {
-      const firstProblemId = problems[0]._id || problems[0].id;
-      navigate(`/problem/${firstProblemId}`);
-    }, 500);
   };
 
   if (!roomId) {
