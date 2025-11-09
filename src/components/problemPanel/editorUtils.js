@@ -1,8 +1,36 @@
 // src/components/problemPanel/editorUtils.js
+
 export const renderValue = (val) =>
   typeof val === "object" ? JSON.stringify(val, null, 2) : String(val);
 
-export const formatOutput = (val) => String(val).replace(/\n+/g, " ").trim();
+// Improved output comparison that handles arrays, numbers, and whitespace intelligently
+export const formatOutput = (val) => {
+  const strVal = String(val).trim();
+  
+  // Try to parse as JSON first (arrays, objects)
+  try {
+    const parsed = JSON.parse(strVal);
+    return JSON.stringify(parsed); // Normalized JSON string
+  } catch (e) {
+    // Not JSON, continue
+  }
+  
+  // Handle numeric strings
+  const numVal = parseFloat(strVal);
+  if (!isNaN(numVal) && strVal !== "") {
+    return String(numVal);
+  }
+  
+  // For strings, normalize whitespace but preserve structure
+  return strVal.replace(/\s+/g, " ");
+};
+
+// Alternative comparison function that's more lenient
+export const compareOutputs = (actual, expected) => {
+  const actualFormatted = formatOutput(actual);
+  const expectedFormatted = formatOutput(expected);
+  return actualFormatted === expectedFormatted;
+};
 
 export async function runCode(SERVER_URL, problemId, code) {
   const res = await fetch(`${SERVER_URL}/evaluate/run`, {

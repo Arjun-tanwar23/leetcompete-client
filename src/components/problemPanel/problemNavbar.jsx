@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { FaCheck, FaTimes } from "react-icons/fa";
 import { useBattle } from "../../context/BattleContext";
 import { toast } from "react-toastify";
+import { socket } from "../../socket";
 
 function ProblemNavbar({ problems, currentIndex, onProblemSelect, metadata }) {
   const navigate = useNavigate();
@@ -10,6 +11,8 @@ function ProblemNavbar({ problems, currentIndex, onProblemSelect, metadata }) {
   const [showEndBattleModal, setShowEndBattleModal] = useState(false);
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [timeLeft, setTimeLeft] = useState("--:--:--");
+  const [opponentSolvedProblems, setOpponentSolvedProblems] = useState(new Set());
+  const [userSolvedProblems, setUserSolvedProblems] = useState(new Set());
 
   const formatTime = (ms) => {
     if (ms < 0) ms = 0;
@@ -23,8 +26,15 @@ function ProblemNavbar({ problems, currentIndex, onProblemSelect, metadata }) {
   };
 
   useEffect(() => {
-    if (!metadata?.duration || !battleData.startTime) {
-      setTimeLeft(formatTime((metadata?.duration || 0) * 60 * 1000));
+    if (!metadata?.duration) {
+      // No duration configured, show placeholder
+      setTimeLeft(formatTime(0));
+      return;
+    }
+
+    // If battle hasn't started yet, show full duration
+    if (!battleData.startTime) {
+      setTimeLeft(formatTime(metadata.duration * 60 * 1000));
       return;
     }
 
@@ -32,7 +42,7 @@ function ProblemNavbar({ problems, currentIndex, onProblemSelect, metadata }) {
     const endTime = battleData.startTime + totalDurationMs;
 
     const initialRemaining = endTime - Date.now();
-    setTimeLeft(formatTime(initialRemaining));
+    setTimeLeft(formatTime(Math.max(initialRemaining, 0)));
 
     const timerInterval = setInterval(() => {
       const now = Date.now();
@@ -50,27 +60,66 @@ function ProblemNavbar({ problems, currentIndex, onProblemSelect, metadata }) {
     return () => clearInterval(timerInterval);
   }, [metadata?.duration, battleData.startTime]);
 
+  // Listen for opponent submissions
+  useEffect(() => {
+    const handleOpponentSubmitted = ({ userId, problemId, result }) => {
+      console.log(`[Progress] Opponent (${userId}) submitted for problem ${problemId}:`, result);
+      if (result?.allPassed) {
+        setOpponentSolvedProblems((prev) => new Set([...prev, problemId]));
+        toast.info(`🔥 Opponent solved a problem!`);
+      } else {
+        toast.info(`⚠️ Opponent attempted problem (${result?.passedTests}/${result?.totalTests} passed)`);
+      }
+    };
+
+    const handleMySubmission = ({ userId, problemId, result }) => {
+      console.log(`[Progress] You submitted for problem ${problemId}:`, result);
+      if (result?.allPassed) {
+        setUserSolvedProblems((prev) => new Set([...prev, problemId]));
+        toast.success(`✅ You solved a problem!`);
+      }
+    };
+
+    const handleOpponentChangedProblem = ({ problemIndex, userId }) => {
+      console.log(`[Progress] Opponent changed to problem ${problemIndex}`);
+    };
+
+    socket.on("opponent-submitted", handleOpponentSubmitted);
+    socket.on("my-submission", handleMySubmission);
+    socket.on("opponent-changed-problem", handleOpponentChangedProblem);
+
+    return () => {
+      socket.off("opponent-submitted", handleOpponentSubmitted);
+      socket.off("my-submission", handleMySubmission);
+      socket.off("opponent-changed-problem", handleOpponentChangedProblem);
+    };
+  }, [problems]); // Include problems in dependency so problemId mapping is fresh
+
   const handleEndBattle = () => {
     resetBattle();
     navigate("/battle");
   };
 
   const totalProblems = problems?.length || 0;
+  
+  // Build player progress from local state (you) and opponent submissions tracked via socket
   const playerProgress = {
     you: {
       name: "You",
-      role: "Host",
+      role: battleData.isHost ? "Host" : "Opponent",
       problems: Array.from({ length: totalProblems }, (_, i) => ({
         id: i + 1,
-        status: "unsolved",
+        problemId: problems[i]?._id,
+        status: userSolvedProblems.has(problems[i]?._id) ? "solved" : "unsolved",
       })),
     },
     opponent: {
-      name: "Challenger",
-      role: "Opponent",
+      name: battleData.isHost ? "Opponent" : "Host",
+      role: battleData.isHost ? "Opponent" : "Host",
       problems: Array.from({ length: totalProblems }, (_, i) => ({
         id: i + 1,
-        status: "unsolved",
+        problemId: problems[i]?._id,
+        status: opponentSolvedProblems.has(problems[i]?._id) ? "solved" : "unsolved",
       })),
     },
   };
@@ -154,6 +203,22 @@ function ProblemNavbar({ problems, currentIndex, onProblemSelect, metadata }) {
               >
                 <FaTimes className="text-xl" />
               </button>
+            </div>
+
+            {/* Summary Stats */}
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="bg-green-900/20 border border-green-700/50 rounded-lg p-4">
+                <p className="text-green-400 font-semibold">Your Progress</p>
+                <p className="text-white text-2xl font-bold mt-1">
+                  {getSolvedCount(playerProgress.you.problems)}/{playerProgress.you.problems.length}
+                </p>
+              </div>
+              <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-4">
+                <p className="text-blue-400 font-semibold">Opponent Progress</p>
+                <p className="text-white text-2xl font-bold mt-1">
+                  {getSolvedCount(playerProgress.opponent.problems)}/{playerProgress.opponent.problems.length}
+                </p>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-6">

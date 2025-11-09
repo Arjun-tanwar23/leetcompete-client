@@ -1,6 +1,6 @@
 // src/components/problemPanel/OutputPanel.jsx
 import { PacmanLoader } from "react-spinners";
-import { renderValue, formatOutput } from "./editorUtils";
+import { renderValue, compareOutputs } from "./editorUtils";
 
 function OutputPanel({ showOutput, isRunning, isSubmitting, problem, output }) {
   if (isRunning || isSubmitting)
@@ -13,7 +13,7 @@ function OutputPanel({ showOutput, isRunning, isSubmitting, problem, output }) {
   if (!output)
     return (
       <p className="text-zinc-500 text-center py-4">
-        Click “Run” or “Submit” to see output
+        Click "Run" or "Submit" to see output
       </p>
     );
 
@@ -32,7 +32,7 @@ function OutputPanel({ showOutput, isRunning, isSubmitting, problem, output }) {
         </h3>
 
         {output.results.map((r) => {
-          const passed = formatOutput(r.output) === formatOutput(r.expectedOutput);
+          const passed = compareOutputs(r.output, r.expectedOutput);
           return (
             <div
               key={r.testCase}
@@ -56,13 +56,13 @@ function OutputPanel({ showOutput, isRunning, isSubmitting, problem, output }) {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-blue-400 font-medium">Expected:</p>
-                  <pre className="bg-zinc-950 p-2 rounded text-white overflow-x-auto">
+                  <pre className="bg-zinc-950 p-2 rounded text-white overflow-x-auto max-h-24">
                     {renderValue(r.expectedOutput)}
                   </pre>
                 </div>
                 <div>
                   <p className="text-yellow-400 font-medium">Your Output:</p>
-                  <pre className="bg-zinc-950 p-2 rounded text-white overflow-x-auto">
+                  <pre className="bg-zinc-950 p-2 rounded text-white overflow-x-auto max-h-24">
                     {renderValue(r.output)}
                   </pre>
                 </div>
@@ -92,13 +92,13 @@ function OutputPanel({ showOutput, isRunning, isSubmitting, problem, output }) {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <p className="text-blue-400 font-medium">Expected:</p>
-          <pre className="bg-zinc-950 p-2 rounded text-white overflow-x-auto">
+          <pre className="bg-zinc-950 p-2 rounded text-white overflow-x-auto max-h-24">
             {renderValue(output.expectedOutput)}
           </pre>
         </div>
         <div>
           <p className="text-yellow-400 font-medium">Your Output:</p>
-          <pre className="bg-zinc-950 p-2 rounded text-white overflow-x-auto">
+          <pre className="bg-zinc-950 p-2 rounded text-white overflow-x-auto max-h-24">
             {renderValue(output.output)}
           </pre>
         </div>

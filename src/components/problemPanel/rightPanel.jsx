@@ -2,12 +2,15 @@ import { useState, useEffect, useRef } from "react";
 import Editor from "@monaco-editor/react";
 import { toast } from "react-toastify";
 import { useBattle } from "../../context/BattleContext";
+import { useUser } from "../../context/UserContext";
 import OutputPanel from "./OutputPanel";
 import { runCode, submitCode } from "./editorUtils";
+import { socket } from "../../socket";
 
 function RightPanel({ problem }) {
   const SERVER_URL = import.meta.env.VITE_SERVER_URL;
-  const { saveUserCode, getUserCode } = useBattle();
+  const { saveUserCode, getUserCode, battleData } = useBattle();
+  const { userData } = useUser();
 
   const [code, setCode] = useState("");
   const [output, setOutput] = useState(null);
@@ -71,6 +74,27 @@ public:
       setOutput({ mode: "submit", ...data });
       if (data.allPassed) toast.success("🎉 All test cases passed!");
       else toast.warning(`${data.passedTests}/${data.totalTests} passed`);
+
+      // Emit socket event to notify opponent of submission and update local progress
+      if (battleData?.roomId && userData?._id) {
+        // Local update: emit an event that updates the submitter's progress
+        socket.emit("my-submission", {
+          roomId: battleData.roomId,
+          userId: userData._id,
+          problemId: problem._id,
+          result: data,
+        });
+
+        // Also emit the opponent-visible event if user is not the host
+        if (!battleData.isHost) {
+          socket.emit("code-submitted", {
+            roomId: battleData.roomId,
+            userId: userData._id,
+            problemId: problem._id,
+            result: data,
+          });
+        }
+      }
     } catch (err) {
       toast.error(err.message);
     } finally {

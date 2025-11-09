@@ -96,9 +96,14 @@ function WaitingWindow() {
       });
     };
 
-    const handleMatchStarted = () => {
-      console.log("Match started by host");
+    const handleMatchStarted = ({ startTime }) => {
+      console.log("Match started by host. Start time:", startTime);
       toast.success("Battle is started!");
+
+      // Store the server's startTime in battle context so the problem navbar can use it
+      updateBattleData({
+        startTime: startTime || Date.now(),
+      });
 
       setTimeout(() => {
         const problems = battleData.problems || location.state?.problems;
