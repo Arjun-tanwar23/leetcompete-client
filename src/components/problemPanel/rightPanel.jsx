@@ -50,7 +50,12 @@ public:
       const data = await runCode(SERVER_URL, problem._id, code);
       setOutput({ mode: "run", ...data });
     } catch (err) {
-      toast.error(err.message);
+      console.error('Run error:', err);
+      toast.error(err.message || "Failed to run code. Please make sure you're logged in.");
+      if (err.message.includes("No token found")) {
+        // Redirect to login if not authenticated
+        window.location.href = '/login';
+      }
     } finally {
       setIsRunning(false);
     }

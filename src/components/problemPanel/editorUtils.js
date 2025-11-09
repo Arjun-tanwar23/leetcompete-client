@@ -9,6 +9,7 @@ export async function runCode(SERVER_URL, problemId, code) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ problemId, code }),
+    credentials: 'include', // Include cookies in the request
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || "Run failed");
@@ -20,6 +21,7 @@ export async function submitCode(SERVER_URL, problemId, code) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ problemId, code }),
+    credentials: 'include', // Include cookies in the request
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || "Submit failed");
