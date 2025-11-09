@@ -62,83 +62,89 @@ function App() {
       clientId={clientId}
       authorizationParams={{
         redirect_uri: redirectUri || `${window.location.origin}/callback`,
-        scope: "openid profile email",
+        scope: "openid profile email"
       }}
     >
       <BattleProvider>
-        {isNavigating && <PageLoader />}
-        <ToastContainer pauseOnHover={false} theme="dark" />
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/callback" element={<Auth0Callback />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/terms-of-service" element={<TermsOfService />} />
-            {/* protected routes */}
-            <Route
-              path="/battle"
-              element={
-                <ProtectedRoute>
-                  <SelectProblemPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/history"
-              element={
-                <ProtectedRoute>
-                  <History />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/join-room"
-              element={
-                <ProtectedRoute>
-                  <JoinRoom />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/problem/:problemId"
-              element={
-                <ProtectedRoute>
-                  <ProblemScreen />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/waiting-window"
-              element={
-                <ProtectedRoute>
-                  <WaitingWindow />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/leaderboard" element={<LeaderBoard />} />
-            <Route
-              path="/edit-profile"
-              element={
-                <ProtectedRoute>
-                  <EditProfile />
-                </ProtectedRoute>
-              }
-            />
+      {isNavigating && <PageLoader />}
+      <ToastContainer pauseOnHover={false} theme="dark" />
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/callback" element={<Auth0Callback />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
+          {/* protected routes */}
+          <Route
+            path="/battle"
+            element={
+              <ProtectedRoute>
+                <SelectProblemPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/history"
+            element={
+              <ProtectedRoute>
+                <History />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/join-room"
+            element={
+              <ProtectedRoute>
+                <JoinRoom />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/problem/:problemId"
+            element={
+              <ProtectedRoute>
+                <ProblemScreen />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/waiting-window"
+            element={
+              <ProtectedRoute>
+                <WaitingWindow />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/leaderboard"
+            element={ 
+                <LeaderBoard />
+            }
+          />
+          <Route
+            path="/edit-profile"
+            element={
+              <ProtectedRoute>
+                <EditProfile />
+              </ProtectedRoute>
+            }
+          />
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
-      </BattleProvider>
+
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+    </BattleProvider>
     </Auth0Provider>
   );
 }
